@@ -40,7 +40,9 @@ def ask_question():
 
     
     context = cosine_ans
+    print("\nFull Description:")
     print(context)
+    print()
         # Tokenize the question and context
     encoding = tokenizer.encode_plus(text=question,text_pair=context)
 
@@ -75,9 +77,9 @@ def ask_question():
           corrected_answer += word[2:]
        else:
           corrected_answer += ' ' + word
-
+    print("Summarize Answer:")
     print(corrected_answer)
-
+    print()
     # Render the index.html template with the predicted answer
     # print(best_answer)
     return render_template('index.html', predicted_answer=corrected_answer)
