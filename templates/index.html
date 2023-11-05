@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Question Answering</title>
+</head>
+<body>
+    <h1>Ask a Question</h1>
+    <form action="/ask_question" method="post">
+        <label for="question">Question:</label>
+        <input type="text" id="question" name="question" required>
+        <br><br>
+        <input type="submit" value="Submit">
+    </form>
+
+    <h2>Answer:</h2>
+    <p id="answer"></p>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Get the user's question from the input field
+            const question = document.querySelector('#question').value;
+
+            // Send the question to the Flask app
+            fetch('/ask_question', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question: question }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the answer in the HTML page
+                document.querySelector('#answer').textContent = data.predicted_answer;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
