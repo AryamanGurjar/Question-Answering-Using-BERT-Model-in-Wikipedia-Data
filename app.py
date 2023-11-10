@@ -4,12 +4,13 @@ from transformers import BertForQuestionAnswering, BertTokenizer
 from datasets import load_dataset
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from googletrans import Translator
 
 app = Flask(__name__)
 
 dataset = load_dataset("wiki_qa", split="train[:100]")  # Load the first 100 rows
 
-# Load the pre-trained BERT model and tokenizer
+
 model_name = 'bert-large-uncased-whole-word-masking-finetuned-squad'
 model = BertForQuestionAnswering.from_pretrained(model_name)
 tokenizer = BertTokenizer.from_pretrained(model_name)
@@ -19,15 +20,35 @@ def index():
     return render_template('index.html')
 
 @app.route('/ask_question', methods=['POST'])
+
+   
+
+    # Detect the language of the text
+    
+
+    
+    
 def ask_question():
     # Retrieve the question from the request
     data = request.get_json()
-    question = data['question']
+    translator = Translator()
+    question =data['question']
+    lang = translator.detect(question).lang
+    
+    if lang == 'en':
+        # If the text is in English, return it as is
+        question
+    else:
+        # Translate the text to English
+        translation = translator.translate(question, dest='en')
+        question= translation.text
+
+
     tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix = tfidf_vectorizer.fit_transform(dataset['answer'])
     similarity_scores = cosine_similarity(tfidf_vectorizer.transform([question]), tfidf_matrix)
     sorted_indices = similarity_scores.argsort()[0][::-1]
-    top_n = 5  # You can adjust the number of top answers to retrieve
+    top_n = 5 
     ba = [dataset['answer'][index] for index in sorted_indices[:top_n]]
     cosine_ans=''
     for  a in enumerate(ba):
@@ -40,8 +61,12 @@ def ask_question():
 
     
     context = cosine_ans
+    text = context
+    translation = translator.translate(text, dest=lang)
+    text= translation.text
+
     print("\nFull Description:")
-    print(context)
+    print(text)
     print()
         # Tokenize the question and context
     encoding = tokenizer.encode_plus(text=question,text_pair=context)
@@ -77,6 +102,9 @@ def ask_question():
           corrected_answer += word[2:]
        else:
           corrected_answer += ' ' + word
+    
+    translation = translator.translate(corrected_answer, dest=lang)
+    corrected_answer= translation.text
     print("Summarize Answer:")
     print(corrected_answer)
     print()
